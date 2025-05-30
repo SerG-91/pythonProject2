@@ -2,9 +2,16 @@ import datetime
 import os.path
 
 import pandas as pd
+import requests
+from dotenv import load_dotenv
 
 from config import DATA_DIR
 from src.utils import get_data_df
+
+load_dotenv()
+
+api_key = os.getenv('API_KEY')
+
 
 
 def greeting(time_now) -> str:
@@ -39,6 +46,9 @@ def cards(df: pd.DataFrame) -> list:
 
 
 def list_top_five_transactions(df: pd.DataFrame, data: str) -> list:
+    """Функция принимает на вход датафрейм и дату, а возвращаем список 5 наибольших по сумме транзакций
+        за период от введеной даты по начало этого месяца"""
+
     df["Дата платежа"] = pd.to_datetime(df["Дата платежа"], dayfirst=True)
     end_data = datetime.datetime.strptime(data, "%d.%m.%Y")
     start_data = end_data.replace(day=1)
@@ -58,23 +68,28 @@ def list_top_five_transactions(df: pd.DataFrame, data: str) -> list:
     return list_top_transactions
 
 
-def service_1(df: pd.DataFrame, data: str, range_month=0) -> list:
+def service_total_muont(df: pd.DataFrame, data: str, range_month=0) -> list:
+    """Функция принимает на вход датафрейм, дату и период в месяцах за который будет происходить посчет,
+     а возвращает общюю сумму трат за данный период времени"""
+
     end_data = datetime.datetime.strptime(data, "%d.%m.%Y")
     start_data = end_data.replace(month=end_data.month - range_month, day=1)
     range_time_list = df[(df["Дата платежа"] > start_data) & (df["Дата платежа"] <= end_data)]
     all_sum = range_time_list.agg({"Сумма операции с округлением": "sum"})
-    # t = range_time_list.groupby("Категория").apply(lambda x: x.sort_values("Сумма операции с округлением", ascending=False))
-    # category_agg_list = range_time_list.groupby("Категория").agg({"Сумма операции с округлением": "sum"}).sort_values("Сумма операции с округлением", ascending=False).to_json(orient='records', force_ascii=False)
-    return all_sum.to_dict()['Сумма операции с округлением']
+    return round(all_sum.to_dict()['Сумма операции с округлением'], 2)
 
 
-def service_2(df: pd.DataFrame, data: str, range_month=0):
+def service_amount_by_category(df: pd.DataFrame, data: str, range_month=0) -> list:
+    """Функция принимает на вход датафрейм, дату и период в месяцах за который будет происходить посчет,
+     а возвращает общюю сумму трат отсортированную от большего к меньшему за данный период времени
+     по первым 7 категориям, а все остальные уходят в категорию - Остальное"""
+
     end_data = datetime.datetime.strptime(data, "%d.%m.%Y")
     start_data = end_data.replace(month=end_data.month - range_month, day=1)
     range_time_list = df[(df["Дата платежа"] > start_data) & (df["Дата платежа"] <= end_data)]
     category_agg_list = range_time_list.groupby("Категория").agg({"Сумма операции с округлением": "sum"}).sort_values(
         "Сумма операции с округлением", ascending=False).to_dict()
-    list_catgory = []
+    list_category = []
     char = 1
     sum_count = 0
     for i in category_agg_list.values():
@@ -82,23 +97,26 @@ def service_2(df: pd.DataFrame, data: str, range_month=0):
             if char > 7:
                 sum_count += t
             else:
-                list_catgory.append(
+                list_category.append(
                     {
                         'category': x,
-                        'amount': t
+                        'amount': round(t, 2)
                     }
                 )
             char += 1
-    list_catgory.append(
+    list_category.append(
         {
             'category': "Остальное",
-            'amount': sum_count
+            'amount': round(sum_count, 2)
         }
     )
-    return list_catgory
+    return list_category
 
 
-def service_3(df: pd.DataFrame, data: str, range_month=0):
+def service_transfers_and_cash(df: pd.DataFrame, data: str, range_month=0) -> list:
+    """Функция принимает на вход датафрейм, дату и период в месяцах за который будет происходить посчет,
+     а возвращает общую сумму трат по категории Наличные и Переводы"""
+
     end_data = datetime.datetime.strptime(data, "%d.%m.%Y")
     start_data = end_data.replace(month=end_data.month - range_month, day=1)
     range_time_list = df[(df["Дата платежа"] > start_data) & (df["Дата платежа"] <= end_data)]
@@ -125,7 +143,59 @@ def service_3(df: pd.DataFrame, data: str, range_month=0):
             "amount": round(nal['Сумма операции с округлением'])
         })
     return list_perevod_and_nal
-    # print(perevod, nal)
+
+
+def get_api():
+    """Функция выводит курсы валют евро и доллара"""
+
+    url = "https://api.apilayer.com/fixer/convert"
+    payload1 = {
+        "amount": "1",
+        "from": "EUR",
+        "to": "RUB"
+    }
+    payload2 = {
+        "amount": "1",
+        "from": "USD",
+        "to": "RUB"
+    }
+    headers = {
+         "apikey": api_key
+
+    }
+    resp_1 = requests.get(url, payload1, headers=headers).json()
+    resp_2 = requests.get(url, payload2, headers=headers).json()
+    resp_eur = resp_1["info"]["rate"]
+    resp_usd = resp_2["info"]["rate"]
+
+    output_list = [{
+        "currency_rates": [{
+            "currency": "USD",
+            "rate": resp_usd
+        },
+        {
+            "currency": "EUR",
+            "rate": resp_eur
+        }
+        ]
+    }]
+
+    return output_list
+
+
+def api_stoks():
+    stocks_list = ["AAPL", "AMZN", "GOOGL", "MSFT", "TSLA"]
+    price_stocks = []
+
+    for stock in stocks_list:
+        response = requests.get(f"http://api.marketstack.com/v1/eod?access_key=32e2902ea866bcfcf9a8aa200fdbaac2&symbols={stock}")
+        dict_result = response.json()
+        price_stocks.append({
+            "stock": dict_result["data"][0]["symbol"],
+            "price": dict_result["data"][0]["open"]
+        })
+    return price_stocks
+
 
 
 if __name__ == "__main__":
@@ -134,10 +204,10 @@ if __name__ == "__main__":
     df_load = get_data_df(path_csv)
 
     output_dict = {
-        "expenses": {"total_amount": service_1(df_load, '10.07.2021', 3)},
-        "main": service_2(df_load, '10.07.2021', 3),
-        "transfers_and_cash": service_3(df_load, '10.07.2021', 3)
-        # "top_transactions": list_top_five_transactions(df_load, '20.06.2021')
+        "expenses": {"total_amount": service_total_muont(df_load, '10.07.2021', 3)},
+        "main": service_amount_by_category(df_load, '10.07.2021', 3),
+        "transfers_and_cash": service_transfers_and_cash(df_load, '10.07.2021', 3)
+
     }
-    print(output_dict)
+    print(api_stoks())
     # print(service_3(df_load, '10.07.2021', 3))
