@@ -59,7 +59,7 @@ def list_top_five_transactions(df: pd.DataFrame, data: str) -> list:
     return list_top_transactions
 
 
-def service_total_muont(df: pd.DataFrame, data: str, range_month=0) -> list:
+def service_total_amount(df: pd.DataFrame, data: str, range_month=0) -> list:
     """Функция принимает на вход датафрейм, дату и период в месяцах за который будет происходить посчет,
      а возвращает общюю сумму трат за данный период времени"""
 
@@ -104,7 +104,7 @@ def service_amount_by_category(df: pd.DataFrame, data: str, range_month=0) -> li
     return list_category
 
 
-def service_transfers_and_cash(df: pd.DataFrame, data: str, range_month=0) -> list:
+def service_transfers_and_cash(df: pd.DataFrame, data: str, range_month=0) -> list|str:
     """Функция принимает на вход датафрейм, дату и период в месяцах за который будет происходить посчет,
      а возвращает общую сумму трат по категории Наличные и Переводы"""
 
@@ -136,8 +136,8 @@ def service_transfers_and_cash(df: pd.DataFrame, data: str, range_month=0) -> li
                 "amount": round(nal['Сумма операции с округлением'])
             })
         return list_perevod_and_nal
-    except:
-        return "Ошибка в периоде месяцев"
+    except Exception as f:
+        return f"Ошибка в периоде месяцев {f}"
 
 
 if __name__ == "__main__":
@@ -145,16 +145,18 @@ if __name__ == "__main__":
     df_load = get_data_df(path_csv)
     greeting_time = datetime.datetime.now()
 
-    t = pd.DataFrame({
-        "Номер карты": ["*7197", "*7197", "*5091", "*5091", "*5091", "*7197"],
+    t1 = pd.DataFrame({
+        "Номер карты": ["*7197", "*7197", "*5091", "*5091", "*5091", "*7197", "*5091"],
         "Дата платежа": [datetime.datetime(2021, 6, 11), datetime.datetime(2021, 6, 9),
-                         datetime.datetime(2021, 6, 10),  datetime.datetime(2021, 6, 17),
-                         datetime.datetime(2021, 6, 14), datetime.datetime(2021, 6, 20)],
-        "Сумма операции с округлением": [30.5, 30.0, 23.73, 20.0, 17.0, 90000.00],
-        "Категория": ['Связь', 'Наличные', 'Одежда и обувь', 'Фастфуд', 'Различные товары', "Переводы"],
-        "Описание": ['Переводы', 'Снятие денег', 'Детки', 'IP Yakubovskaya M.V.', 'Детский Мир', "Иван С."]
+                         datetime.datetime(2021, 6, 10), datetime.datetime(2021, 6, 17),
+                         datetime.datetime(2021, 6, 14), datetime.datetime(2021, 6, 20),
+                         datetime.datetime(2021, 7, 13)],
+        "Сумма операции с округлением": [30.5, 30.0, 23.73, 20.0, 17.0, 90000.00, 200.00],
+        "Категория": ['Связь', 'Наличные', 'Одежда и обувь', 'Фастфуд', 'Различные товары', "Переводы",
+                      "Мобильная связь"],
+        "Описание": ['Переводы', 'Снятие денег', 'Детки', 'IP Yakubovskaya M.V.', 'Детский Мир', "Иван С.",
+                     "Тинькофф Мобайл +7 995 555-55-55"]
 
     })
-    tt = service_transfers_and_cash(t, '20.06.2021', )
+    tt = service_amount_by_category(t1, "20.06.2021")
     print(tt)
-

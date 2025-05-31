@@ -4,7 +4,7 @@ import datetime
 from config import DATA_DIR
 from src.services import search_name, search_tel
 from src.utils import get_data_df, get_api_exchange_rate, get_api_stocks_snp
-from src.views import greeting, cards, list_top_five_transactions, service_total_muont, service_amount_by_category, \
+from src.views import greeting, cards, list_top_five_transactions, service_total_amount, service_amount_by_category, \
     service_transfers_and_cash
 
 path_csv = os.path.join(DATA_DIR, "operations.csv")
@@ -14,6 +14,7 @@ greeting_time = datetime.datetime.now()
 
 def main():
     print("ГЛАВНАЯ\n")
+    print("Главная:")
     output_dict_main = {
         "greeting": greeting(greeting_time),
         "cards": cards(df_load),
@@ -23,9 +24,9 @@ def main():
     }
     print(output_dict_main)
 
-    print("\nСОБЫТИЯ\n")
+    print("\nСобытия")
     output_dict_service = {
-        "expenses": {"total_amount": service_total_muont(df_load, '10.07.2021', 3)},
+        "expenses": {"total_amount": service_total_amount(df_load, '10.07.2021', 3)},
         "main": service_amount_by_category(df_load, '10.07.2021', 3),
         "transfers_and_cash": service_transfers_and_cash(df_load, '10.07.2021', 3),
         # "currency_rates": get_api_exchange_rate(),
@@ -33,11 +34,12 @@ def main():
 
     }
     print(output_dict_service)
-
-    print("\nПоиск по телефонным номерам\n")
+    print("\nСЕРВИСЫ\n")
+    print("Поиск по телефонным номерам:")
     print(search_tel(df_load))
 
-    print("\nПоиск переводов физическим лицам\n")
+
+    print("\nПоиск переводов физическим лицам:")
     print(search_name(df_load))
 
 
