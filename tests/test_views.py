@@ -1,4 +1,4 @@
-from src.views import list_top_five_transactions, cards, greeting
+from src.views import list_top_five_transactions, cards, greeting, service_transfers_and_cash
 
 
 def test_list_top_five_transactions(df, date_time):
@@ -17,3 +17,7 @@ def test_cards(df2):
 
 def test_greeting(time):
     assert greeting(time) == "Доброй ночи"
+
+
+def test_service_transfers_and_cash(df6, date_time):
+    assert service_transfers_and_cash(df6, date_time) == [{'category': 'Переводы', 'amount': 90000}, {'category': 'Наличные', 'amount': 30}]

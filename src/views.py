@@ -2,16 +2,9 @@ import datetime
 import os.path
 
 import pandas as pd
-import requests
-from dotenv import load_dotenv
 
 from config import DATA_DIR
 from src.utils import get_data_df
-
-load_dotenv()
-
-api_key = os.getenv('API_KEY')
-
 
 
 def greeting(time_now) -> str:
@@ -30,8 +23,6 @@ def greeting(time_now) -> str:
 def cards(df: pd.DataFrame) -> list:
     """Функция группирует данные датафрейма по номерам карт и считает сумму трат по каждой карте"""
 
-    df['Сумма операции с округлением'] = df['Сумма операции с округлением'].str.replace(",", ".")
-    df['Сумма операции с округлением'] = df['Сумма операции с округлением'].astype('float')
     df_group_by_card = df.groupby('Номер карты')
     df_agg_summ = df_group_by_card['Сумма операции с округлением'].sum().to_dict()
 
@@ -121,93 +112,49 @@ def service_transfers_and_cash(df: pd.DataFrame, data: str, range_month=0) -> li
     start_data = end_data.replace(month=end_data.month - range_month, day=1)
     range_time_list = df[(df["Дата платежа"] > start_data) & (df["Дата платежа"] <= end_data)]
     category_agg_list = range_time_list.groupby("Категория").agg({"Сумма операции с округлением": "sum"})
-    perevod = category_agg_list.loc["Переводы"].to_dict()
-    nal = category_agg_list.loc["Наличные"].to_dict()
-    list_perevod_and_nal = []
-    if perevod['Сумма операции с округлением'] > nal['Сумма операции с округлением']:
-        list_perevod_and_nal.append({
-            "category": "Переводы",
-            "amount": round(perevod['Сумма операции с округлением'])
-        })
-        list_perevod_and_nal.append({
-            "category": "Наличные",
-            "amount": round(nal['Сумма операции с округлением'])
-        })
-    else:
-        list_perevod_and_nal.append({
-            "category": "Наличные",
-            "amount": round(perevod['Сумма операции с округлением'])
-        })
-        list_perevod_and_nal.append({
-            "category": "Переводы",
-            "amount": round(nal['Сумма операции с округлением'])
-        })
-    return list_perevod_and_nal
-
-
-def get_api():
-    """Функция выводит курсы валют евро и доллара"""
-
-    url = "https://api.apilayer.com/fixer/convert"
-    payload1 = {
-        "amount": "1",
-        "from": "EUR",
-        "to": "RUB"
-    }
-    payload2 = {
-        "amount": "1",
-        "from": "USD",
-        "to": "RUB"
-    }
-    headers = {
-         "apikey": api_key
-
-    }
-    resp_1 = requests.get(url, payload1, headers=headers).json()
-    resp_2 = requests.get(url, payload2, headers=headers).json()
-    resp_eur = resp_1["info"]["rate"]
-    resp_usd = resp_2["info"]["rate"]
-
-    output_list = [{
-        "currency_rates": [{
-            "currency": "USD",
-            "rate": resp_usd
-        },
-        {
-            "currency": "EUR",
-            "rate": resp_eur
-        }
-        ]
-    }]
-
-    return output_list
-
-
-def api_stoks():
-    stocks_list = ["AAPL", "AMZN", "GOOGL", "MSFT", "TSLA"]
-    price_stocks = []
-
-    for stock in stocks_list:
-        response = requests.get(f"http://api.marketstack.com/v1/eod?access_key=32e2902ea866bcfcf9a8aa200fdbaac2&symbols={stock}")
-        dict_result = response.json()
-        price_stocks.append({
-            "stock": dict_result["data"][0]["symbol"],
-            "price": dict_result["data"][0]["open"]
-        })
-    return price_stocks
-
+    # print(start_data, end_data)
+    try:
+        perevod = category_agg_list.loc["Переводы"].to_dict()
+        nal = category_agg_list.loc["Наличные"].to_dict()
+        list_perevod_and_nal = []
+        if perevod['Сумма операции с округлением'] > nal['Сумма операции с округлением']:
+            list_perevod_and_nal.append({
+                "category": "Переводы",
+                "amount": round(perevod['Сумма операции с округлением'])
+            })
+            list_perevod_and_nal.append({
+                "category": "Наличные",
+                "amount": round(nal['Сумма операции с округлением'])
+            })
+        else:
+            list_perevod_and_nal.append({
+                "category": "Наличные",
+                "amount": round(perevod['Сумма операции с округлением'])
+            })
+            list_perevod_and_nal.append({
+                "category": "Переводы",
+                "amount": round(nal['Сумма операции с округлением'])
+            })
+        return list_perevod_and_nal
+    except:
+        return "Ошибка в периоде месяцев"
 
 
 if __name__ == "__main__":
-    # greeting_time = datetime.datetime.now()
     path_csv = os.path.join(DATA_DIR, "operations.csv")
     df_load = get_data_df(path_csv)
+    greeting_time = datetime.datetime.now()
 
-    output_dict = {
-        "expenses": {"total_amount": service_total_muont(df_load, '10.07.2021', 3)},
-        "main": service_amount_by_category(df_load, '10.07.2021', 3),
-        "transfers_and_cash": service_transfers_and_cash(df_load, '10.07.2021', 3)
+    t = pd.DataFrame({
+        "Номер карты": ["*7197", "*7197", "*5091", "*5091", "*5091", "*7197"],
+        "Дата платежа": [datetime.datetime(2021, 6, 11), datetime.datetime(2021, 6, 9),
+                         datetime.datetime(2021, 6, 10),  datetime.datetime(2021, 6, 17),
+                         datetime.datetime(2021, 6, 14), datetime.datetime(2021, 6, 20)],
+        "Сумма операции с округлением": [30.5, 30.0, 23.73, 20.0, 17.0, 90000.00],
+        "Категория": ['Связь', 'Наличные', 'Одежда и обувь', 'Фастфуд', 'Различные товары', "Переводы"],
+        "Описание": ['Переводы', 'Снятие денег', 'Детки', 'IP Yakubovskaya M.V.', 'Детский Мир', "Иван С."]
 
-    }
-    print(api_stoks())
-    # print(service_3(df_load, '10.07.2021', 3))
+    })
+    tt = service_transfers_and_cash(t, '20.06.2021', )
+    print(tt)
+
