@@ -1,5 +1,5 @@
 from src.views import list_top_five_transactions, cards, greeting, service_transfers_and_cash, \
-    service_amount_by_category
+    service_amount_by_category, service_total_amount
 
 
 def test_greeting(time):
@@ -18,6 +18,10 @@ def test_list_top_five_transactions(df6, date_time):
         {'date': '10.06.2021', 'amount': 23.73, 'category': 'Одежда и обувь', 'description': 'Детки'},
         {'date': '17.06.2021', 'amount': 20.0, 'category': 'Фастфуд', 'description': 'IP Yakubovskaya M.V.'},
         {'date': '14.06.2021', 'amount': 17.0, 'category': 'Различные товары', 'description': 'Детский Мир'}]
+
+
+def test_service_total_amount(df6, date_time):
+    assert service_total_amount(df6, date_time) == 90121.23
 
 
 def test_service_amount_by_category(df6, date_time):

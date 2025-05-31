@@ -2,6 +2,7 @@ import os
 import datetime
 
 from config import DATA_DIR
+from src.reports import spending_by_category
 from src.services import search_name, search_tel
 from src.utils import get_data_df, get_api_exchange_rate, get_api_stocks_snp
 from src.views import greeting, cards, list_top_five_transactions, service_total_amount, service_amount_by_category, \
@@ -38,12 +39,14 @@ def main():
     print("Поиск по телефонным номерам:")
     print(search_tel(df_load))
 
-
     print("\nПоиск переводов физическим лицам:")
     print(search_name(df_load))
 
 
-
+    print("\nОТЧЕТЫ\n")
+    print("Траты по категории:")
+    print(spending_by_category(df_load, "Фастфуд", "20.06.2021"))
+    return ""
 
 if __name__ == "__main__":
     print(main())
