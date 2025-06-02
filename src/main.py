@@ -9,9 +9,9 @@ from src.utils import get_api_exchange_rate, get_api_stocks_snp, get_data_df
 from src.views import (cards, greeting, list_top_five_transactions, service_amount_by_category, service_total_amount,
                        service_transfers_and_cash)
 
-logger = logging.getLogger("views")
+logger = logging.getLogger("main")
 logger.setLevel("INFO")
-file_handler = logging.FileHandler("logs/views.log")
+file_handler = logging.FileHandler("logs/main.log")
 file_formatter = logging.Formatter("%(asctime)s - %(name)s: %(message)s")
 file_handler.setFormatter(file_formatter)
 logger.addHandler(file_handler)
@@ -24,6 +24,7 @@ stocks_list = ["AAPL", "AMZN", "GOOGL", "MSFT", "TSLA"]
 
 
 def main() -> None:
+    logger.info("Старт работы раздела Главная")
     print("ГЛАВНАЯ\n")
     print("Главная:")
     output_dict_main = {
@@ -44,6 +45,8 @@ def main() -> None:
         # "stock_prices": get_api_stocks_snp(stocks_list)
     }
     print(output_dict_service)
+
+    logger.info("Старт работы раздела Сервисы")
     print("\nСЕРВИСЫ\n")
     print("Поиск по телефонным номерам:")
     print(search_tel(df_load))
@@ -51,6 +54,7 @@ def main() -> None:
     print("\nПоиск переводов физическим лицам:")
     print(search_name(df_load))
 
+    logger.info("Старт работы раздела Отчеты")
     print("\nОТЧЕТЫ\n")
     print("Траты по категории:")
     print(spending_by_category(df_load, "Фастфуд", "20.06.2021"))
