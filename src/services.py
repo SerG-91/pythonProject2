@@ -1,23 +1,26 @@
-import datetime
-import os
+import logging
+from typing import Any
 
 import pandas as pd
 
-from config import DATA_DIR
-from src.utils import get_data_df
+
+logger = logging.getLogger("services")
+logger.setLevel("INFO")
+file_handler = logging.FileHandler("logs/services.log")
+file_formatter = logging.Formatter("%(asctime)s - %(name)s: %(message)s")
+file_handler.setFormatter(file_formatter)
+logger.addHandler(file_handler)
 
 
-def search_tel(df: pd.DataFrame) -> None:
-    pattern = r'\b \W+7\W\d{3}\W\d{3}-\d{2}-\d{2}'
-    filtered_data = df[df['Описание'].str.contains(pattern, na=False)]
-    return filtered_data.to_json(orient='records', force_ascii=False, indent=4)
+def search_tel(df: pd.DataFrame) -> Any:
+    pattern = r"\b \W+7\W\d{3}\W\d{3}-\d{2}-\d{2}"
+    filtered_data = df[df["Описание"].str.contains(pattern, na=False)]
+    logger.info("Функция search_tel возвращает отредактированный список согласно паттерна")
+    return filtered_data.to_json(orient="records", force_ascii=False, indent=4)
 
 
-def search_name(df: pd.DataFrame) -> None:
-    pattern = r'\b\D* \D\.$'
-    filtered_data = df[df['Описание'].str.contains(pattern)]
-    return filtered_data.to_json(orient='records', force_ascii=False, indent=4)
-
-
-
-
+def search_name(df: pd.DataFrame) -> Any:
+    pattern = r"\b\D* \D\.$"
+    filtered_data = df[df["Описание"].str.contains(pattern)]
+    logger.info("Функция search_name возвращает отредактированный список согласно паттерна")
+    return filtered_data.to_json(orient="records", force_ascii=False, indent=4)
