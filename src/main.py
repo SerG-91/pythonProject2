@@ -2,16 +2,16 @@ import datetime
 import logging
 import os
 
-from config import DATA_DIR
+from config import DATA_DIR, LOGS_DIR
 from src.reports import spending_by_category
 from src.services import search_name, search_tel
 from src.utils import get_api_exchange_rate, get_api_stocks_snp, get_data_df
 from src.views import (cards, greeting, list_top_five_transactions, service_amount_by_category, service_total_amount,
                        service_transfers_and_cash)
 
-logger = logging.getLogger("main")
+logger = logging.getLogger(__name__)
 logger.setLevel("INFO")
-file_handler = logging.FileHandler("logs/main.log")
+file_handler = logging.FileHandler(f"{LOGS_DIR}/main.log", encoding='utf-8')
 file_formatter = logging.Formatter("%(asctime)s - %(name)s: %(message)s")
 file_handler.setFormatter(file_formatter)
 logger.addHandler(file_handler)

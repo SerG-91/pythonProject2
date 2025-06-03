@@ -3,10 +3,11 @@ from typing import Any
 
 import pandas as pd
 
+from config import LOGS_DIR
 
 logger = logging.getLogger("services")
 logger.setLevel("INFO")
-file_handler = logging.FileHandler("logs/services.log")
+file_handler = logging.FileHandler(f"{LOGS_DIR}/services.log", encoding='utf-8')
 file_formatter = logging.Formatter("%(asctime)s - %(name)s: %(message)s")
 file_handler.setFormatter(file_formatter)
 logger.addHandler(file_handler)

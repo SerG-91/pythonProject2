@@ -1,11 +1,14 @@
 import datetime
-from typing import Any
 import logging
+from typing import Any
+
 import pandas as pd
 
-logger = logging.getLogger("views")
+from config import LOGS_DIR
+
+logger = logging.getLogger(__name__)
 logger.setLevel("INFO")
-file_handler = logging.FileHandler("logs/views.log")
+file_handler = logging.FileHandler(f"{LOGS_DIR}/views.log", encoding='utf-8')
 file_formatter = logging.Formatter("%(asctime)s - %(name)s: %(message)s")
 file_handler.setFormatter(file_formatter)
 logger.addHandler(file_handler)

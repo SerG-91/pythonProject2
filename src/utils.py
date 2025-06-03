@@ -1,4 +1,3 @@
-import datetime
 import logging
 import os
 
@@ -6,12 +5,11 @@ import pandas as pd
 import requests
 from dotenv import load_dotenv
 
-from config import DATA_DIR
+from config import LOGS_DIR
 
-
-logger = logging.getLogger("utils")
+logger = logging.getLogger(__name__)
 logger.setLevel("INFO")
-file_handler = logging.FileHandler("logs/utils.log")
+file_handler = logging.FileHandler(f"{LOGS_DIR}/utils.log", encoding='utf-8')
 file_formatter = logging.Formatter("%(asctime)s - %(name)s: %(message)s")
 file_handler.setFormatter(file_formatter)
 logger.addHandler(file_handler)
@@ -63,5 +61,3 @@ def get_api_stocks_snp(stocks) -> list:
         price_stocks.append({"stock": dict_result["data"][0]["symbol"], "price": dict_result["data"][0]["open"]})
     logger.info("Получаем ответ")
     return price_stocks
-
-

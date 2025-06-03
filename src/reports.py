@@ -6,13 +6,11 @@ from typing import Optional
 
 import pandas as pd
 
-from config import DATA_DIR
-from src.utils import get_data_df
+from config import DATA_DIR, LOGS_DIR
 
-
-logger = logging.getLogger("reports")
+logger = logging.getLogger(__name__)
 logger.setLevel("INFO")
-file_handler = logging.FileHandler("logs/reports.log")
+file_handler = logging.FileHandler(f"{LOGS_DIR}/reports.log", encoding='utf-8')
 file_formatter = logging.Formatter("%(asctime)s - %(name)s: %(message)s")
 file_handler.setFormatter(file_formatter)
 logger.addHandler(file_handler)
@@ -65,6 +63,3 @@ def spending_by_category(transactions: pd.DataFrame, category: str, date: Option
         return filter_by_category.to_json(orient="records", force_ascii=False, indent=4)
     except Exception as e:
         logger.warning(f"ошибка - {e}")
-
-
-
